@@ -11,7 +11,7 @@ from mypy.types import (
     UnboundType,
 )
 
-from ssql.core.mapper import Mapper, getTypeNameByInstance
+from core.mapper import Mapper, getTypeNameByInstance
 
 
 class PgMapper(Mapper):

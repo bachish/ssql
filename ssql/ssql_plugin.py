@@ -7,13 +7,13 @@ from mypy.types import AnyType
 from mypy.types import Type as MypyType
 from mypy.types import get_proper_type
 
-from ssql.messages import (
+from messages import (
     any_type_args,
     cant_infer_query_statement,
     database_error,
     func_name,
 )
-from ssql.ssql_psycopg2.pg_connection import PgConnection
+from ssql_psycopg2.pg_connection import PgConnection
 
 #: Type for a function hook.
 _FunctionCallback = Callable[[FunctionContext], MypyType]

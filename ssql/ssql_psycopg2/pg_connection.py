@@ -3,8 +3,8 @@ from typing import List, Optional
 import psycopg2
 from mypy.types import ProperType
 
-from ssql.core.connection import Connection
-from ssql.ssql_psycopg2.pg_mapper import PgMapper
+from core.connection import Connection
+from ssql_psycopg2.pg_mapper import PgMapper
 
 
 # TODO compare query and function arity
