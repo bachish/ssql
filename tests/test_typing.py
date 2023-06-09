@@ -20,9 +20,7 @@ checked_func: Final = "execute"
 
 
 def get_file_typing(name: str):
-    return os.path.join(
-        os.path.dirname(__file__), "resources", "typing", name
-    )
+    return os.path.join(os.path.dirname(__file__), "resources", "typing", name)
 
 
 def test_unknown_statement(postgres_container: Container):
@@ -34,9 +32,7 @@ def test_unknown_statement(postgres_container: Container):
 
 
 def test_anyType_arg(postgres_container: Container):
-    output, a, err_count = api.run(
-        [get_file_typing("warn_anytype_arg.py")]
-    )
+    output, a, err_count = api.run([get_file_typing("warn_anytype_arg.py")])
     expected = any_type_args(2, checked_func)
     assert expected in output
 
@@ -64,7 +60,5 @@ def test_correct_types(postgres_container: Container):
 
 
 def test_correct_simple_query(postgres_container: Container):
-    output, a, err_count = api.run(
-        [get_file_database("correct_simple.py")]
-    )
+    output, a, err_count = api.run([get_file_database("correct_simple.py")])
     assert output == "" or "Success" in output

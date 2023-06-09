@@ -1,7 +1,10 @@
+from typing import List, Optional
+
 import psycopg2
-from core.connection import Connection
 from mypy.types import ProperType
-from ssql_psycopg2.pg_mapper import PgMapper
+
+from ssql.core.connection import Connection
+from ssql.ssql_psycopg2.pg_mapper import PgMapper
 
 
 # TODO compare query and function arity
@@ -18,7 +21,7 @@ class PgConnection(Connection):
             password="123",
         )
 
-    def check_without_types(self, query) -> str | None:
+    def check_without_types(self, query: str) -> Optional[str]:
         """
         Check only syntax ans semantic of statement.
         Can check only if query is a string value.
@@ -34,7 +37,9 @@ class PgConnection(Connection):
                 self.conn.rollback()
         return msg
 
-    def check(self, query, types: ProperType) -> str | None:
+    def check(
+        self, query: str, types: List[Optional[ProperType]]
+    ) -> Optional[str]:
         """
         In psycopg2 a context wraps a transaction:
         if the context exits with success the transaction is committed,

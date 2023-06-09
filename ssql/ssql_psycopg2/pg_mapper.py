@@ -1,7 +1,6 @@
 import builtins
 from typing import Dict
 
-from core.mapper import Mapper
 from mypy.types import (
     AnyType,
     CallableArgument,
@@ -12,6 +11,8 @@ from mypy.types import (
     UnboundType,
 )
 
+from ssql.core.mapper import Mapper, getTypeNameByInstance
+
 
 class PgMapper(Mapper):
     def __init__(self) -> None:
@@ -21,12 +22,15 @@ class PgMapper(Mapper):
             builtins.str.__name__: "text",
         }
 
-    def get_string(self, var: ProperType) -> str:
+    def get_type_name(self, var: ProperType) -> str:
         if isinstance(var, Instance):
             try:
-                return self.PgTypes.get(Mapper.getTypeNameByInstance(var))
+                type = self.PgTypes.get(getTypeNameByInstance(var))
+                if type is None:
+                    raise Exception("unknown type")
+                return type
             except ValueError:
-                print("unsupported type :(")
+                raise Exception("unsupported type")
 
         if isinstance(var, TypeVarLikeType):
             pass
@@ -39,6 +43,8 @@ class PgMapper(Mapper):
         if isinstance(var, AnyType):
             pass
 
+        raise Exception("unsupported type")
+
     def map(self, some_type: ProperType) -> str:
-        x = self.get_string(some_type)
+        x = self.get_type_name(some_type)
         return x
