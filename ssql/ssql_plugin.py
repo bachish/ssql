@@ -1,18 +1,17 @@
 from typing import Callable, Optional
 
-from mypy.options import Options
-from mypy.plugin import FunctionContext, Plugin
-from mypy.typeops import try_getting_str_literals_from_type
-from mypy.types import AnyType
-from mypy.types import Type as MypyType
-from mypy.types import get_proper_type
-
 from messages import (
-    any_type_args,
+    any_type_args_warn,
     cant_infer_query_statement,
     database_error,
     func_name,
 )
+from mypy.options import Options
+from mypy.plugin import FunctionContext, Plugin
+from mypy.types import AnyType
+from mypy.types import Type as MypyType
+from mypy.types import get_proper_type
+from mypy_utils import get_literal_str
 from ssql_psycopg2.pg_connection import PgConnection
 
 #: Type for a function hook.
@@ -29,9 +28,9 @@ class SsqlPlugin(Plugin):
         fullname: str,
     ) -> Optional[_FunctionCallback]:
         def checker(ctx: FunctionContext) -> MypyType:
-            statement: Optional[
-                list[str]
-            ] = try_getting_str_literals_from_type(ctx.arg_types[0][0])
+            statement: Optional[list[str]] = get_literal_str(
+                ctx.arg_types[0][0]
+            )
 
             if statement is None or len(statement) == 0:
                 ctx.api.msg.note(
@@ -52,7 +51,7 @@ class SsqlPlugin(Plugin):
                 proper_type = get_proper_type(arg_type)
                 if isinstance(proper_type, AnyType):
                     ctx.api.msg.note(
-                        any_type_args(idx + 1, fullname), ctx.context
+                        any_type_args_warn(idx + 1, fullname), ctx.context
                     )
                     msg = self.conn.check_without_types(statement[0])
                     if msg is not None:

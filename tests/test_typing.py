@@ -23,6 +23,31 @@ def get_file_typing(name: str):
     return os.path.join(os.path.dirname(__file__), "resources", "typing", name)
 
 
+def is_success(output: str) -> bool:
+    return output == "" or "Success" in output
+
+
+def test_literal_string(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_str_arg.py")]
+    )
+    assert is_success(output)
+
+
+def test_literal_int(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_int_arg.py")]
+    )
+    assert is_success(output)
+
+
+def test_literal_boolean(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_boolean_arg.py")]
+    )
+    assert is_success(output)
+
+
 def test_unknown_statement(postgres_container: Container):
     output, a, err_count = api.run(
         [get_file_typing("warn_cannot_get_statement.py")]
@@ -56,9 +81,9 @@ def test_correct_types(postgres_container: Container):
     output, a, err_count = api.run(
         [get_file_database("correct_types_func.py")]
     )
-    assert output == "" or "Success" in output
+    assert is_success(output)
 
 
 def test_correct_simple_query(postgres_container: Container):
     output, a, err_count = api.run([get_file_database("correct_simple.py")])
-    assert output == "" or "Success" in output
+    assert is_success(output)
