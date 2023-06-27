@@ -4,7 +4,11 @@ from typing import Final
 from docker.models.containers import Container
 from mypy import api
 
-from ..ssql.messages import database_error
+from ..ssql.messages import (
+    any_type_args_warn,
+    cant_infer_query_statement,
+    database_error,
+)
 
 checked_func: Final = "execute"
 
@@ -26,39 +30,39 @@ def is_success(output: str, a, err_count) -> bool:
     return is_win
 
 
-# def test_literal_string(postgres_container: Container):
-#     output, a, err_count = api.run(
-#         [get_file_typing("correct_literal_str_arg.py")]
-#     )
-#     assert is_success(output)
+def test_literal_string(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_str_arg.py")]
+    )
+    assert is_success(output, a, err_count)
 
 
-# def test_literal_int(postgres_container: Container):
-#     output, a, err_count = api.run(
-#         [get_file_typing("correct_literal_int_arg.py")]
-#     )
-#     assert is_success(output)
+def test_literal_int(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_int_arg.py")]
+    )
+    assert is_success(output, a, err_count)
 
 
-# def test_literal_boolean(postgres_container: Container):
-#     output, a, err_count = api.run(
-#         [get_file_typing("correct_literal_boolean_arg.py")]
-#     )
-#     assert is_success(output)
+def test_literal_boolean(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_boolean_arg.py")]
+    )
+    assert is_success(output, a, err_count)
 
 
-# def test_unknown_statement(postgres_container: Container):
-#     output, a, err_count = api.run(
-#         [get_file_typing("warn_cannot_get_statement.py")]
-#     )
-#     expected = cant_infer_query_statement(checked_func)
-#     assert expected in output
+def test_unknown_statement(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("warn_cannot_get_statement.py")]
+    )
+    expected = cant_infer_query_statement()
+    assert expected in output
 
 
-# def test_anyType_arg(postgres_container: Container):
-#     output, a, err_count = api.run([get_file_typing("warn_anytype_arg.py")])
-#     expected = any_type_args_warn(2, checked_func)
-#     assert expected in output
+def test_anyType_arg(postgres_container: Container):
+    output, a, err_count = api.run([get_file_typing("warn_anytype_arg.py")])
+    expected = any_type_args_warn()
+    assert expected in output
 
 
 def test_tuple_arg(postgres_container: Container):

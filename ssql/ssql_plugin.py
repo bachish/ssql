@@ -1,9 +1,15 @@
 from typing import Callable, Optional
 
 from errors import SsqlDBError, SsqlTypeError
-from messages import cant_infer_query_statement, database_error, func_name
+from messages import (
+    any_type_args_warn,
+    cant_infer_query_statement,
+    database_error,
+    func_name,
+)
 from mypy.options import Options
 from mypy.plugin import FunctionContext, Plugin
+from mypy.types import AnyType
 from mypy.types import Type as MypyType
 from mypy.types import get_proper_type
 from mypy_utils import get_literal_str
@@ -18,6 +24,13 @@ class SsqlPlugin(Plugin):
         super().__init__(options)
         self.conn = PgConnection()
 
+    def get_arg_type(self, arg_type):
+        # TODO check None argument (it's may be a valid value)
+        proper_type = get_proper_type(arg_type)
+        if isinstance(proper_type, AnyType):
+            raise SsqlTypeError(any_type_args_warn())
+        return proper_type
+
     def get_function_hook(
         self,
         fullname: str,
@@ -28,9 +41,7 @@ class SsqlPlugin(Plugin):
             )
 
             if statement is None or len(statement) == 0:
-                ctx.api.msg.note(
-                    cant_infer_query_statement(fullname), ctx.context
-                )
+                ctx.api.msg.note(cant_infer_query_statement(), ctx.context)
                 return ctx.default_return_type
 
             arg_types = []
@@ -39,11 +50,10 @@ class SsqlPlugin(Plugin):
                 for idx in range(1, len(ctx.arg_types)):
                     arg_list = ctx.arg_types[idx]
                     if len(arg_list) > 0:
-                        arg_type = arg_list[0]
                         # TODO when need to check lists tail ?
-                        # TODO check None argument (it's may be a valid value)
-                        proper_type = get_proper_type(arg_type)
-                        arg_types.append(proper_type)
+                        arg_type = self.get_arg_type(arg_list[0])
+                        arg_types.append(arg_type)
+
             except SsqlTypeError as se:
                 ctx.api.msg.note(se.msg, ctx.context)
                 try:
