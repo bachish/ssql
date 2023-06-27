@@ -1,14 +1,9 @@
 from typing import Callable, Optional
 
-from messages import (
-    any_type_args_warn,
-    cant_infer_query_statement,
-    database_error,
-    func_name,
-)
+from errors import SsqlDBError, SsqlTypeError
+from messages import cant_infer_query_statement, database_error, func_name
 from mypy.options import Options
 from mypy.plugin import FunctionContext, Plugin
-from mypy.types import AnyType
 from mypy.types import Type as MypyType
 from mypy.types import get_proper_type
 from mypy_utils import get_literal_str
@@ -39,31 +34,26 @@ class SsqlPlugin(Plugin):
                 return ctx.default_return_type
 
             arg_types = []
-            msg = None
-            for idx in range(1, len(ctx.arg_types)):
-                # TODO when need to check lists tail ?
-                if len(ctx.arg_types[idx]) == 0:
-                    arg_type = None
-                else:
-                    arg_type = ctx.arg_types[idx][0]
-
-                # TODO check None argument (it's may be a valid value)
-                proper_type = get_proper_type(arg_type)
-                if isinstance(proper_type, AnyType):
-                    ctx.api.msg.note(
-                        any_type_args_warn(idx + 1, fullname), ctx.context
-                    )
-                    msg = self.conn.check_without_types(statement[0])
-                    if msg is not None:
-                        ctx.api.fail(
-                            database_error(fullname, msg), ctx.context
-                        )
-                    return ctx.default_return_type
-                arg_types.append(proper_type)
-
-            msg = self.conn.check(statement[0], arg_types)
-            if msg is not None:
-                ctx.api.fail(database_error(fullname, msg), ctx.context)
+            try:
+                # try to get all args types
+                for idx in range(1, len(ctx.arg_types)):
+                    arg_list = ctx.arg_types[idx]
+                    if len(arg_list) > 0:
+                        arg_type = arg_list[0]
+                        # TODO when need to check lists tail ?
+                        # TODO check None argument (it's may be a valid value)
+                        proper_type = get_proper_type(arg_type)
+                        arg_types.append(proper_type)
+            except SsqlTypeError as se:
+                ctx.api.msg.note(se.msg, ctx.context)
+                try:
+                    self.conn.check_without_types(statement[0])
+                except SsqlDBError as de:
+                    ctx.api.fail(database_error(de.msg), ctx.context)
+            try:
+                self.conn.check(statement[0], arg_types)
+            except SsqlDBError as de:
+                ctx.api.fail(database_error(de.msg), ctx.context)
 
             return ctx.default_return_type
 

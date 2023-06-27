@@ -1,17 +1,10 @@
 import builtins
-from typing import Dict
-
-from mypy.types import (
-    AnyType,
-    CallableArgument,
-    Instance,
-    ProperType,
-    TypeList,
-    TypeVarLikeType,
-    UnboundType,
-)
+from typing import Dict, List, Optional
 
 from core.mapper import Mapper, getTypeNameByInstance
+from errors import SsqlTypeError
+from messages import any_type_args_warn, unsupported_type
+from mypy.types import AnyType, Instance, ProperType, TupleType
 
 
 class PgMapper(Mapper):
@@ -24,27 +17,22 @@ class PgMapper(Mapper):
 
     def get_type_name(self, var: ProperType) -> str:
         if isinstance(var, Instance):
-            try:
-                type = self.PgTypes.get(getTypeNameByInstance(var))
-                if type is None:
-                    raise Exception("unknown type")
-                return type
-            except ValueError:
-                raise Exception("unsupported type")
+            return self.PgTypes.get(getTypeNameByInstance(var))
 
-        if isinstance(var, TypeVarLikeType):
-            pass
-        if isinstance(var, UnboundType):
-            pass
-        if isinstance(var, CallableArgument):
-            pass
-        if isinstance(var, TypeList):
-            pass
         if isinstance(var, AnyType):
-            pass
+            raise SsqlTypeError(any_type_args_warn())
 
-        raise Exception("unsupported type")
+        raise SsqlTypeError(unsupported_type(getTypeNameByInstance(var)))
 
-    def map(self, some_type: ProperType) -> str:
-        x = self.get_type_name(some_type)
-        return x
+    def map_tuple(self, var: TupleType) -> str:
+        return self.map_list(var.items)
+
+    def map_list(self, vars: List[Optional[ProperType]]) -> str:
+        return ",".join([self.get_type_name(arg) for arg in vars])
+
+    def get_args_view(
+        self, types: List[Optional[ProperType]]
+    ) -> Optional[str]:
+        if len(types) == 1 and isinstance(types[0], TupleType):
+            return self.map_tuple(types[0])
+        return self.map_list(types)
