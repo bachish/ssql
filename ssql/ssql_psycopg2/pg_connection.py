@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import psycopg2
+import tomli
 from core.connection import Connection
 from errors import SsqlDBError
 from mypy.types import ProperType
@@ -14,13 +15,18 @@ class PgConnection(Connection):
 
     def __init__(self):
         self.mapper = PgMapper()
-        # TODO remove connection properties from code
+        connect = self.__read__()
         self.conn = psycopg2.connect(
-            host="172.17.0.2",
-            database="postgres",
-            user="postgres",
-            password="123",
+            host=connect["host"],
+            database=connect["database"],
+            user=connect["user"],
+            password=connect["password"],
         )
+
+    def __read__(self):
+        with open("pyproject.toml", "rb") as f:
+            data = tomli.load(f)
+            return data["ssql_postgres"]
 
     def check_without_types(self, query: str):
         """
