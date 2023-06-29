@@ -3,3 +3,4 @@ __pycache__
 poetry.lock
 dist
 tests/resources/bigTest.py
+.vscode/settings.json

@@ -11,8 +11,6 @@ from ssql_psycopg2.pg_mapper import PgMapper
 
 
 class PgConnection(Connection):
-    """ """
-
     def __init__(self):
         self.mapper = PgMapper()
         connect = self.__read__()

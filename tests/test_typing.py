@@ -51,6 +51,13 @@ def test_literal_boolean(postgres_container: Container):
     assert is_success(output, a, err_count)
 
 
+def test_literal_float(postgres_container: Container):
+    output, a, err_count = api.run(
+        [get_file_typing("correct_literal_float_arg.py")]
+    )
+    assert is_success(output, a, err_count)
+
+
 def test_unknown_statement(postgres_container: Container):
     output, a, err_count = api.run(
         [get_file_typing("warn_cannot_get_statement.py")]

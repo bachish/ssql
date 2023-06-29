@@ -13,9 +13,13 @@ class PgMapper(Mapper):
             builtins.int.__name__: "integer",
             builtins.bool.__name__: "boolean",
             builtins.str.__name__: "text",
+            builtins.float.__name__: "real",
         }
 
-    def get_type_name(self, var: ProperType) -> str:
+    def get_type_name(self, var: Optional[ProperType]) -> str:
+        if var is None:
+            raise SsqlTypeError(unsupported_type(getTypeNameByInstance(var)))
+
         if isinstance(var, Instance):
             return self.PgTypes.get(getTypeNameByInstance(var))
 

@@ -7,7 +7,7 @@ def cant_infer_query_statement() -> str:
 
 
 def any_type_args_warn() -> str:
-    return "Can not infer type of query argument. Please specify type."
+    return "Cannot infer type of query argument. Please specify type."
 
 
 def unsupported_type(type_name: str) -> str:

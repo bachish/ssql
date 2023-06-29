@@ -52,6 +52,7 @@ q = """
         empId INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         dept TEXT NOT NULL,
+        bonus REAL,
         isFired BOOLEAN NOT NULL DEFAULT False
         );
         -- insert
