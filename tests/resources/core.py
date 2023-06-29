@@ -6,7 +6,7 @@ def execute(query_statement: str, *args) -> str:
     return query_statement
 
 
-def unknownRet():
+def unknownTypeRet():
     return "42"
 
 
